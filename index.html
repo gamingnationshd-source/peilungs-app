@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#141414" />
+  <title>Peilung · Kohlsaat Spedition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Barlow Condensed', sans-serif; background: #0d0d0d; color: #e8e0cc; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+    .app { max-width: 680px; margin: 0 auto; padding: 0 0 90px; }
+
+    .header { background: #141414; border-bottom: 2px solid #f59e0b; padding: 16px 20px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+    .header-icon { color: #f59e0b; display: flex; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
+    .header small { font-size: 11px; color: #6b6b5a; letter-spacing: 2px; font-family: 'Space Mono', monospace; display: block; margin-top: 3px; }
+    .btn-back { background: none; border: none; color: #f59e0b; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 0; }
+
+    .tabs { display: flex; border-bottom: 1px solid #2a2a2a; background: #111; }
+    .tab { flex: 1; padding: 13px 8px; text-align: center; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; color: #4a4a3a; border-bottom: 2px solid transparent; font-family: 'Barlow Condensed', sans-serif; }
+    .tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+
+    .section-title { font-size: 11px; letter-spacing: 3px; color: #6b6b5a; text-transform: uppercase; font-family: 'Space Mono', monospace; padding: 20px 20px 8px; }
+
+    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-left: 3px solid #f59e0b; margin: 0 16px 10px; border-radius: 6px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .card:active { background: #222; }
+    .card-name { font-size: 18px; font-weight: 700; }
+    .card-meta { font-size: 12px; color: #6b6b5a; font-family: 'Space Mono', monospace; margin-top: 3px; }
+    .card-right { text-align: right; flex-shrink: 0; }
+    .card-count { font-size: 20px; font-weight: 700; color: #f59e0b; font-family: 'Space Mono', monospace; }
+    .card-label { font-size: 11px; color: #6b6b5a; font-family: 'Space Mono', monospace; }
+
+    .peil-mode-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-family: 'Space Mono', monospace; padding: 2px 7px; border-radius: 4px; margin-top: 5px; }
+    .peil-mode-badge.liter { background: #1a2a1a; border: 1px solid #22c55e44; color: #22c55e; }
+    .peil-mode-badge.cm-faktor { background: #1a1a2a; border: 1px solid #60a5fa44; color: #60a5fa; }
+    .peil-mode-badge.cm-tabelle { background: #2a1a2a; border: 1px solid #c084fc44; color: #c084fc; }
+
+    .fab { position: fixed; bottom: 28px; right: 20px; background: #f59e0b; color: #0d0d0d; border: none; border-radius: 50%; width: 58px; height: 58px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 24px rgba(245,158,11,0.45); z-index: 20; }
+    .fab:active { background: #d97706; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+    .modal-overlay.hidden { display: none; }
+    .modal { background: #1a1a1a; border: 1px solid #2a2a2a; border-top: 2px solid #f59e0b; border-radius: 16px 16px 0 0; width: 100%; max-width: 680px; padding: 24px 20px 36px; max-height: 92vh; overflow-y: auto; }
+    .modal-title { font-size: 20px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #f59e0b; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 11px; letter-spacing: 2px; color: #6b6b5a; text-transform: uppercase; font-family: 'Space Mono', monospace; margin-bottom: 6px; }
+    .form-input, .form-select { width: 100%; background: #111; border: 1px solid #333; border-radius: 6px; color: #e8e0cc; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; padding: 11px 13px; outline: none; -webkit-appearance: none; appearance: none; }
+    .form-input:focus, .form-select:focus { border-color: #f59e0b; }
+    .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23f59e0b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .form-select option { background: #1a1a1a; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-input-mono { font-family: 'Space Mono', monospace !important; }
+    .form-hint { font-size: 12px; color: #4a4a3a; font-family: 'Space Mono', monospace; margin-top: 5px; }
+
+    .btn { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border: none; border-radius: 6px; padding: 12px 20px; cursor: pointer; }
+    .btn:active { opacity: 0.82; }
+    .btn-primary { background: #f59e0b; color: #0d0d0d; }
+    .btn-secondary { background: #252525; color: #e8e0cc; border: 1px solid #333; }
+    .btn-danger { background: #3d1515; color: #f87171; border: 1px solid #5a2020; }
+    .btn-sm { font-size: 13px; padding: 7px 14px; }
+    .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-row .btn { flex: 1; }
+    .btn-full { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    .toggle-row { display: flex; background: #111; border: 1px solid #333; border-radius: 8px; margin-bottom: 16px; }
+    .toggle-btn { flex: 1; padding: 10px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border: none; background: none; color: #4a4a3a; border-radius: 7px; }
+    .toggle-btn.active { background: #f59e0b; color: #0d0d0d; }
+
+    /* Peilmodus-Auswahl im Tank-Modal */
+    .peil-mode-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    .peil-mode-btn { background: #111; border: 1px solid #333; border-radius: 8px; padding: 10px 6px; cursor: pointer; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: #4a4a3a; }
+    .peil-mode-btn .pm-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+    .peil-mode-btn.active-liter { border-color: #22c55e; color: #22c55e; background: #0a1a0a; }
+    .peil-mode-btn.active-faktor { border-color: #60a5fa; color: #60a5fa; background: #0a0a1a; }
+    .peil-mode-btn.active-tabelle { border-color: #c084fc; color: #c084fc; background: #1a0a1a; }
+
+    /* Umrechnungstabelle Editor */
+    .tabelle-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .tabelle-row input { background: #111; border: 1px solid #333; border-radius: 6px; color: #e8e0cc; font-family: 'Space Mono', monospace; font-size: 15px; padding: 8px 10px; outline: none; width: 100%; }
+    .tabelle-row input:focus { border-color: #f59e0b; }
+    .tabelle-del { background: none; border: none; color: #444; cursor: pointer; font-size: 18px; padding: 4px 8px; }
+    .tabelle-del:active { color: #f87171; }
+    .tabelle-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; font-size: 10px; letter-spacing: 2px; color: #4a4a3a; font-family: 'Space Mono', monospace; text-transform: uppercase; margin-bottom: 6px; }
+
+    .result-box { background: #111; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e1e1e; }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { font-size: 13px; color: #6b6b5a; font-family: 'Space Mono', monospace; }
+    .result-value { font-size: 18px; font-weight: 700; font-family: 'Space Mono', monospace; color: #e8e0cc; }
+    .result-value.highlight { color: #f59e0b; font-size: 22px; }
+    .result-value.green { color: #22c55e; }
+    .result-value.red { color: #f87171; }
+
+    .verlauf-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; margin: 0 16px 8px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+    .verlauf-dot { width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
+    .verlauf-info { flex: 1; }
+    .verlauf-date { font-size: 12px; font-family: 'Space Mono', monospace; color: #6b6b5a; }
+    .verlauf-values { font-size: 15px; font-weight: 600; margin-top: 2px; }
+    .verlauf-right { text-align: right; flex-shrink: 0; }
+    .verlauf-menge { font-size: 17px; font-weight: 700; font-family: 'Space Mono', monospace; color: #f59e0b; }
+    .verlauf-tag { font-size: 11px; color: #6b6b5a; font-family: 'Space Mono', monospace; }
+    .verlauf-del { background: none; border: none; color: #333; cursor: pointer; padding: 4px; display: flex; }
+    .verlauf-del:active { color: #f87171; }
+
+    .detail-header { padding: 18px 20px 16px; border-bottom: 1px solid #2a2a2a; }
+    .detail-sub { font-size: 12px; color: #f59e0b; font-family: 'Space Mono', monospace; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .detail-name { font-size: 26px; font-weight: 700; }
+    .detail-meta { font-size: 13px; color: #6b6b5a; margin-top: 4px; }
+    .detail-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+    .stat-bar { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px 16px; margin: 14px 16px 0; display: flex; justify-content: space-between; gap: 8px; }
+    .stat-item { text-align: center; flex: 1; }
+    .stat-value { font-size: 20px; font-weight: 700; font-family: 'Space Mono', monospace; color: #f59e0b; }
+    .stat-label { font-size: 10px; color: #4a4a3a; font-family: 'Space Mono', monospace; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+    .stat-divider { width: 1px; background: #2a2a2a; }
+
+    .empty { text-align: center; padding: 50px 20px; color: #333; }
+    .empty-icon { font-size: 48px; margin-bottom: 10px; }
+    .empty-text { font-size: 13px; font-family: 'Space Mono', monospace; letter-spacing: 1px; line-height: 1.8; }
+
+    hr { border: none; border-top: 1px solid #2a2a2a; margin: 14px 0; }
+    .hinweis { background: #1a1a0a; border: 1px solid #3a3000; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: #a07010; font-family: 'Space Mono', monospace; line-height: 1.6; }
+    .info-blue { background: #0a0a1a; border: 1px solid #1e3060; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #60a5fa; font-family: 'Space Mono', monospace; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<button class="fab" id="fab" onclick="fabClick()">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+</button>
+
+<!-- Station Modal -->
+<div class="modal-overlay hidden" id="modalStation" onclick="overlayClose(event,'modalStation')">
+  <div class="modal">
+    <div class="modal-title" id="modalStationTitle">⛽ Neue Tankstelle</div>
+    <div class="form-group">
+      <label class="form-label">Name *</label>
+      <input class="form-input" id="msName" placeholder="z.B. Shell Hauptstraße" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Gesellschaft</label>
+      <select class="form-select" id="msGes">
+        <option value="">– Bitte wählen –</option>
+        <option>Shell</option><option>Nordoel</option><option>Oil</option>
+        <option>Boie</option><option>Classic</option><option>BFT Willer</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modalStation')">Abbrechen</button>
+      <button class="btn btn-primary" id="msBtn" onclick="saveStation()">Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tank Modal -->
+<div class="modal-overlay hidden" id="modalTank" onclick="overlayClose(event,'modalTank')">
+  <div class="modal">
+    <div class="modal-title" id="modalTankTitle">🛢 Neuer Tank</div>
+
+    <div class="form-group">
+      <label class="form-label">Kraftstofftyp *</label>
+      <select class="form-select" id="mtKraft">
+        <option value="">– Bitte wählen –</option>
+        <option value="super_e10">Super E10</option>
+        <option value="super_e5">Super E5</option>
+        <option value="diesel">Diesel</option>
+        <option value="heizoel">Heizöl</option>
+        <option value="hvo">HVO100</option>
+        <option value="adblue">AdBlue</option>
+        <option value="lpg">LPG / Autogas</option>
+        <option value="super_plus">Super Plus</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tankgröße (L) *</label>
+        <input class="form-input form-input-mono" id="mtGroesse" type="number" placeholder="50000" min="1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bezeichnung</label>
+        <input class="form-input" id="mtBez" placeholder="T1, Unterflur…" />
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="form-group">
+      <label class="form-label">Peilmodus</label>
+      <div class="peil-mode-grid">
+        <button class="peil-mode-btn active-liter" id="pmLiter" onclick="setPeilModus('liter')">
+          <span class="pm-icon">🔢</span>Liter
+        </button>
+        <button class="peil-mode-btn" id="pmFaktor" onclick="setPeilModus('faktor')">
+          <span class="pm-icon">📏</span>cm × Faktor
+        </button>
+        <button class="peil-mode-btn" id="pmTabelle" onclick="setPeilModus('tabelle')">
+          <span class="pm-icon">📋</span>cm-Tabelle
+        </button>
+      </div>
+      <div class="form-hint" id="pmHint">Peilwert wird direkt in Litern eingegeben.</div>
+    </div>
+
+    <!-- Faktor-Eingabe -->
+    <div id="faktorSection" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Liter pro Zentimeter *</label>
+        <input class="form-input form-input-mono" id="mtFaktor" type="number" placeholder="z.B. 500" min="1"
+               oninput="updateFaktorHint()" />
+        <div class="form-hint" id="faktorHint">z.B. 500 = jeder cm entspricht 500 L</div>
+      </div>
+    </div>
+
+    <!-- Tabelle-Editor -->
+    <div id="tabelleSection" style="display:none">
+      <div class="info-blue">Trage alle bekannten cm-Werte und die entsprechenden Liter ein. Die App interpoliert dazwischen.</div>
+      <div class="tabelle-header">
+        <span>cm</span><span>Liter</span><span></span>
+      </div>
+      <div id="tabelleRows"></div>
+      <button class="btn btn-secondary" style="width:100%;margin-top:4px" onclick="addTabelleRow()">+ Zeile hinzufügen</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modalTank')">Abbrechen</button>
+      <button class="btn btn-primary" id="mtBtn" onclick="saveTank()">Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Peilung Modal -->
+<div class="modal-overlay hidden" id="modalPeilung" onclick="overlayClose(event,'modalPeilung')">
+  <div class="modal">
+    <div class="modal-title">📏 Peilung erfassen</div>
+
+    <div class="form-group">
+      <label class="form-label">Datum</label>
+      <input class="form-input" id="pDatum" type="date" />
+    </div>
+
+    <hr />
+    <div class="form-group">
+      <label class="form-label">Zeitraum</label>
+      <div class="toggle-row">
+        <button class="toggle-btn active" id="togTag" onclick="setToggle('tag')">Pro Tag</button>
+        <button class="toggle-btn" id="togTage" onclick="setToggle('tage')">Tage angeben</button>
+      </div>
+    </div>
+    <div id="pTageRow" class="form-group" style="display:none">
+      <label class="form-label">Tage seit letzter Lieferung *</label>
+      <input class="form-input form-input-mono" id="pTage" type="number" placeholder="z.B. 7" min="1" oninput="calcPreview()" />
+    </div>
+
+    <hr />
+    <div id="peilEingabeHinweis" class="info-blue" style="display:none"></div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="pVorLabel">Vorpeilung *</label>
+        <input class="form-input form-input-mono" id="pVor" type="number" placeholder="…" min="0" oninput="calcPreview()" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="pNachLabel">Nachpeilung *</label>
+        <input class="form-input form-input-mono" id="pNach" type="number" placeholder="…" min="0" oninput="calcPreview()" />
+      </div>
+    </div>
+
+    <!-- Umgerechnete Werte anzeigen bei cm-Modus -->
+    <div id="cmUmrechnung" style="display:none" class="result-box" style="margin-bottom:10px">
+      <div class="result-row">
+        <span class="result-label">Vorpeilung in Liter</span>
+        <span class="result-value" id="cuVorL">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Nachpeilung in Liter</span>
+        <span class="result-value" id="cuNachL">–</span>
+      </div>
+    </div>
+
+    <div id="pPreview" class="result-box" style="display:none">
+      <div class="result-row">
+        <span class="result-label">Geliefert</span>
+        <span class="result-value" id="pvGeliefert">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Ø Verbrauch / Tag</span>
+        <span class="result-value highlight" id="pvTag">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Ø Verbrauch / Woche</span>
+        <span class="result-value highlight" id="pvWoche">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Max. Füllmenge (95 %)</span>
+        <span class="result-value" id="pvTankgroesse">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Freier Raum bis 95 %</span>
+        <span class="result-value green" id="pvFrei">–</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modalPeilung')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="savePeilung()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KRAFTSTOFFE = {
+  super_e10: { label: "Super E10",    color: "#22c55e" },
+  super_e5:  { label: "Super E5",     color: "#86efac" },
+  diesel:    { label: "Diesel",        color: "#f59e0b" },
+  heizoel:   { label: "Heizöl",        color: "#f97316" },
+  hvo:       { label: "HVO100",        color: "#34d399" },
+  adblue:    { label: "AdBlue",        color: "#60a5fa" },
+  lpg:       { label: "LPG / Autogas", color: "#c084fc" },
+  super_plus: { label: "Super Plus",    color: "#f43f5e" },
+};
+
+const SVG = {
+  back:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>`,
+  trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`,
+  edit:  `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+};
+
+let state = {
+  tab: "stationen",
+  view: "list",
+  activeStationId: null,
+  activeTankId: null,
+  editStationId: null,
+  editTankId: null,
+  toggleModus: "tag",
+  peilModus: "liter",        // aktuell gewählter Modus im Tank-Modal
+  tabelleRows: [],           // temporäre Tabellen-Zeilen im Editor
+  stationen: [],
+};
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+
+function load() {
+  try { const r = localStorage.getItem("peilung-v2"); if (r) state.stationen = JSON.parse(r); } catch(e) {}
+}
+function persist() { localStorage.setItem("peilung-v2", JSON.stringify(state.stationen)); }
+function uid() { return Math.random().toString(36).substr(2, 9); }
+
+// ── Umrechnung cm → Liter ────────────────────────────────────────────────────
+
+// Linearer Faktor: cm * faktor = Liter
+function cmZuLiterFaktor(cm, faktor) {
+  if (!faktor || faktor <= 0) return null;
+  return Math.round(cm * faktor);
+}
+
+// Interpolation aus Tabelle
+function cmZuLiterTabelle(cm, tabelle) {
+  if (!tabelle || tabelle.length === 0) return null;
+  const sorted = [...tabelle].sort((a,b) => a.cm - b.cm);
+  // Exakter Treffer
+  const exact = sorted.find(r => r.cm === cm);
+  if (exact) return exact.liter;
+  // Unter Minimum
+  if (cm <= sorted[0].cm) return sorted[0].liter;
+  // Über Maximum
+  if (cm >= sorted[sorted.length-1].cm) return sorted[sorted.length-1].liter;
+  // Lineare Interpolation
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const lo = sorted[i], hi = sorted[i+1];
+    if (cm >= lo.cm && cm <= hi.cm) {
+      const ratio = (cm - lo.cm) / (hi.cm - lo.cm);
+      return Math.round(lo.liter + ratio * (hi.liter - lo.liter));
+    }
+  }
+  return null;
+}
+
+// Universell: cm oder Liter je nach Tank-Modus → gibt immer Liter zurück
+function toL(wert, tank) {
+  if (!tank) return wert;
+  if (tank.peilModus === "faktor") return cmZuLiterFaktor(wert, tank.faktor);
+  if (tank.peilModus === "tabelle") return cmZuLiterTabelle(wert, tank.tabelle);
+  return wert; // liter-Modus: Wert ist bereits Liter
+}
+
+function einheit(tank) {
+  if (!tank) return "L";
+  return tank.peilModus === "liter" ? "L" : "cm";
+}
+
+// ── Helfer ───────────────────────────────────────────────────────────────────
+
+function fmt(l) {
+  if (l === null || l === undefined || l === "") return "–";
+  return Number(l).toLocaleString("de-DE") + " L";
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y,m,d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function kLabel(id) { return KRAFTSTOFFE[id]?.label || id; }
+function kColor(id) { return KRAFTSTOFFE[id]?.color || "#888"; }
+function getStation(id) { return state.stationen.find(s => s.id === id); }
+function getTank(station, id) { return (station?.tanks||[]).find(t => t.id === id); }
+
+function peilModeBadge(t) {
+  if (!t) return "";
+  if (t.peilModus === "faktor") return `<span class="peil-mode-badge cm-faktor">📏 cm × ${t.faktor}</span>`;
+  if (t.peilModus === "tabelle") return `<span class="peil-mode-badge cm-tabelle">📋 cm-Tabelle (${(t.tabelle||[]).length} Pkt.)</span>`;
+  return `<span class="peil-mode-badge liter">🔢 Liter</span>`;
+}
+
+// ── Verbrauchsberechnung ─────────────────────────────────────────────────────
+
+// Korrekte Formel: Verbrauch zwischen zwei Lieferungen
+// = Nachpeilung(letzte in L) - Vorpeilung(aktuelle in L) / Tage
+function calcVerbrauchsWerte(peilungen, tank) {
+  const sorted = [...peilungen].sort((a,b) => a.datum.localeCompare(b.datum));
+  const ergebnisse = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const vorherige = sorted[i-1];
+    const aktuelle  = sorted[i];
+    const tage = Math.round((new Date(aktuelle.datum) - new Date(vorherige.datum)) / 86400000);
+    if (tage <= 0) continue;
+    const nachL = toL(vorherige.nach, tank);
+    const vorL  = toL(aktuelle.vor, tank);
+    if (nachL === null || vorL === null) continue;
+    const verbraucht = nachL - vorL;
+    if (verbraucht <= 0) continue;
+    ergebnisse.push({ tagesV: Math.round(verbraucht / tage), verbraucht, tage, datum: aktuelle.datum });
+  }
+  return ergebnisse;
+}
+
+function avgVerbrauch(peilungen, tank) {
+  if (peilungen.length < 2) return null;
+  const vals = calcVerbrauchsWerte(peilungen, tank).map(e => e.tagesV);
+  if (!vals.length) return null;
+  return Math.round(vals.reduce((a,b) => a+b, 0) / vals.length);
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+
+function render() {
+  const app = document.getElementById("app");
+  const fab = document.getElementById("fab");
+  fab.style.display = "flex";
+  if (state.view === "list") { app.innerHTML = renderList(); }
+  else if (state.view === "station") { app.innerHTML = renderStation(); }
+  else if (state.view === "tank") { app.innerHTML = renderTank(); fab.style.display = "none"; }
+}
+
+function renderList() {
+  const header = `
+    <div class="header">
+      <span class="header-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V8l9-5 9 5v14"/><path d="M9 22v-6h6v6"/><rect x="9" y="10" width="6" height="4" rx="1"/></svg></span>
+      <div><h1>Peilung</h1><small>KOHLSAAT SPEDITION</small></div>
+    </div>`;
+  const tabs = `
+    <div class="tabs">
+      <div class="tab ${state.tab==='stationen'?'active':''}" onclick="setTab('stationen')">Tankstellen</div>
+      <div class="tab ${state.tab==='verlauf'?'active':''}" onclick="setTab('verlauf')">Verlauf</div>
+    </div>`;
+
+  if (state.tab === "stationen") {
+    if (!state.stationen.length) return header + tabs + `<div class="empty"><div class="empty-icon">⛽</div><div class="empty-text">Noch keine Tankstellen.<br/>Tippe auf + um zu starten.</div></div>`;
+    const cards = state.stationen.map(s => {
+      const tankAnzahl = (s.tanks||[]).length;
+      const avg = avgVerbrauch((s.tanks||[]).flatMap(t => t.peilungen||[]), null);
+      return `
+        <div class="card" onclick="openStation('${s.id}')">
+          <div>
+            <div class="card-name">${esc(s.name)}</div>
+            <div class="card-meta">${esc(s.gesellschaft||"")} · ${tankAnzahl} Tank${tankAnzahl!==1?'s':''}</div>
+          </div>
+          <div class="card-right">
+            <div class="card-count">${avg !== null ? fmt(avg) : "–"}</div>
+            <div class="card-label">Ø / Tag</div>
+          </div>
+        </div>`;
+    }).join("");
+    return header + tabs + `<div class="section-title">${state.stationen.length} TANKSTELLE${state.stationen.length!==1?'N':''}</div>` + cards;
+  }
+
+  // Verlauf-Tab
+  const alle = [];
+  state.stationen.forEach(s => {
+    (s.tanks||[]).forEach(t => {
+      (t.peilungen||[]).forEach(p => {
+        alle.push({ ...p, stationName: s.name, tankLabel: kLabel(t.kraftstoff), tankColor: kColor(t.kraftstoff), tankBez: t.bezeichnung, peilModus: t.peilModus });
+      });
+    });
+  });
+  alle.sort((a,b) => b.datum.localeCompare(a.datum));
+  if (!alle.length) return header + tabs + `<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Noch keine Messungen.</div></div>`;
+
+  const items = alle.map(p => {
+    const istCm = p.peilModus && p.peilModus !== "liter";
+    const vorAnz = istCm ? p.vor+" cm" : fmt(p.vor);
+    const nachAnz = istCm ? p.nach+" cm" : fmt(p.nach);
+    return `
+      <div class="verlauf-item">
+        <div class="verlauf-dot" style="background:${p.tankColor}"></div>
+        <div class="verlauf-info">
+          <div class="verlauf-date">${fmtDate(p.datum)} · ${esc(p.stationName)}</div>
+          <div class="verlauf-values" style="color:${p.tankColor}">${esc(p.tankLabel)}${p.tankBez?' · '+esc(p.tankBez):''}</div>
+          <div style="font-size:12px;color:#4a4a3a;font-family:'Space Mono',monospace;margin-top:2px">Vor: ${vorAnz} → Nach: ${nachAnz}</div>
+        </div>
+        <div class="verlauf-right">
+          <div class="verlauf-menge">${fmt(p.geliefert)}</div>
+          <div class="verlauf-tag">geliefert</div>
+        </div>
+      </div>`;
+  }).join("");
+  return header + tabs + `<div class="section-title">${alle.length} MESSUNGEN GESAMT</div>` + items;
+}
+
+function renderStation() {
+  const s = getStation(state.activeStationId);
+  if (!s) { goBack(); return ""; }
+  const tanks = s.tanks || [];
+  const header = `
+    <div class="header"><button class="btn-back" onclick="goBack()">${SVG.back} Übersicht</button></div>
+    <div class="detail-header">
+      <div class="detail-sub">${esc(s.gesellschaft||'')}</div>
+      <div class="detail-name">${esc(s.name)}</div>
+      <div class="detail-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openStationModal('${s.id}')">${SVG.edit} Bearbeiten</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteStation('${s.id}')">${SVG.trash} Löschen</button>
+      </div>
+    </div>`;
+
+  if (!tanks.length) return header + `<div class="empty" style="padding:40px 20px"><div class="empty-icon">🛢</div><div class="empty-text">Noch keine Tanks.</div></div><div style="padding:0 16px"><button class="btn btn-primary btn-full" onclick="openTankModal(null)">🛢 Tank hinzufügen</button></div>`;
+
+  const cards = tanks.map(t => {
+    const avg = avgVerbrauch(t.peilungen||[], t);
+    const last = (t.peilungen||[]).length ? t.peilungen[t.peilungen.length-1] : null;
+    const k = KRAFTSTOFFE[t.kraftstoff] || {};
+    return `
+      <div class="card" onclick="openTank('${t.id}')" style="border-left-color:${k.color||'#f59e0b'}">
+        <div style="flex:1;min-width:0">
+          <div class="card-name" style="color:${k.color||'#e8e0cc'}">${k.label||esc(t.kraftstoff)}</div>
+          <div class="card-meta">${fmt(t.groesse)} · ${t.bezeichnung?esc(t.bezeichnung)+' · ':''}</div>
+          ${peilModeBadge(t)}
+          <div class="card-meta" style="margin-top:4px">${last?'Letzte Peilung: '+fmtDate(last.datum):'Noch keine Messungen'}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-count" style="color:${k.color||'#f59e0b'}">${avg!==null?fmt(avg):'–'}</div>
+          <div class="card-label">Ø / Tag</div>
+        </div>
+      </div>`;
+  }).join("");
+
+  return header + `<div class="section-title">${tanks.length} TANK${tanks.length!==1?'S':''}</div>` + cards +
+    `<div style="padding:8px 16px"><button class="btn btn-primary btn-full" onclick="openTankModal(null)">🛢 Tank hinzufügen</button></div>`;
+}
+
+function renderTank() {
+  const s = getStation(state.activeStationId);
+  const t = getTank(s, state.activeTankId);
+  if (!s || !t) { openStation(state.activeStationId); return ""; }
+
+  const k = KRAFTSTOFFE[t.kraftstoff] || {};
+  const peilungen = t.peilungen || [];
+  const avg = avgVerbrauch(peilungen, t);
+  const lastP = peilungen.length ? peilungen[peilungen.length-1] : null;
+  const maxFuell = Math.floor(t.groesse * 0.95);
+  const istCm = t.peilModus && t.peilModus !== "liter";
+
+  const statBar = avg !== null ? `
+    <div class="stat-bar">
+      <div class="stat-item"><div class="stat-value">${fmt(avg)}</div><div class="stat-label">Ø / Tag</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><div class="stat-value">${fmt(avg*7)}</div><div class="stat-label">Ø / Woche</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><div class="stat-value">${peilungen.length}</div><div class="stat-label">Messungen</div></div>
+    </div>` : "";
+
+  let empBox = "";
+  if (avg !== null && lastP) {
+    const vorL = toL(lastP.vor, t);
+    const freiRaum = vorL !== null ? maxFuell - vorL : null;
+    const clamp = v => freiRaum !== null && freiRaum > 0 ? Math.min(Math.max(0, Math.round(v)), freiRaum) : 0;
+    const vorAnzeige = istCm ? `${lastP.vor} cm = ${fmt(vorL)}` : fmt(lastP.vor);
+
+    empBox = `
+      <div class="section-title">KALKULATION</div>
+      <div style="padding:0 16px 10px">
+        <div class="hinweis">⚠ Max. Befüllung 95 % = ${fmt(maxFuell)} · aus ${calcVerbrauchsWerte(peilungen,t).length} Intervall${calcVerbrauchsWerte(peilungen,t).length!==1?'en':''}</div>
+        <div class="result-box">
+          <div class="result-row"><span class="result-label">Vorpeilung (letzte)</span><span class="result-value">${vorAnzeige}</span></div>
+          <div class="result-row"><span class="result-label">Freier Raum bis 95 %</span><span class="result-value ${freiRaum!==null&&freiRaum>0?'green':'red'}">${freiRaum!==null?fmt(freiRaum):'–'}</span></div>
+          <div class="result-row"><span class="result-label">Ø Verbrauch / Tag</span><span class="result-value highlight">${fmt(avg)}</span></div>
+          <div class="result-row"><span class="result-label">Ø Verbrauch / Woche</span><span class="result-value highlight">${fmt(avg*7)}</span></div>
+          <div class="result-row" style="border-top:1px solid #2a2a2a;margin-top:4px;padding-top:10px"><span class="result-label">Lieferung für 3 Tage</span><span class="result-value">${fmt(clamp(avg*3))}</span></div>
+          <div class="result-row"><span class="result-label">Lieferung für 5 Tage</span><span class="result-value">${fmt(clamp(avg*5))}</span></div>
+          <div class="result-row"><span class="result-label">Lieferung für 7 Tage</span><span class="result-value">${fmt(clamp(avg*7))}</span></div>
+        </div>
+      </div>`;
+  }
+
+  const verlaufItems = [...peilungen].reverse().map(p => {
+    const vorAnz = istCm ? `${p.vor} cm` : fmt(p.vor);
+    const nachAnz = istCm ? `${p.nach} cm` : fmt(p.nach);
+    const vorL = toL(p.vor, t);
+    const nachL = toL(p.nach, t);
+    return `
+      <div class="verlauf-item">
+        <div class="verlauf-dot" style="background:${k.color||'#f59e0b'}"></div>
+        <div class="verlauf-info">
+          <div class="verlauf-date">${fmtDate(p.datum)} · ${p.modus==='tage'?p.tage+' Tage':'1 Tag'}</div>
+          <div class="verlauf-values">Vor: ${vorAnz} → Nach: ${nachAnz}</div>
+          ${istCm ? `<div style="font-size:11px;color:#4a4a3a;font-family:'Space Mono',monospace">= ${fmt(vorL)} → ${fmt(nachL)}</div>` : ''}
+        </div>
+        <div class="verlauf-right">
+          <div class="verlauf-menge" style="color:${k.color||'#f59e0b'}">${fmt(p.geliefert)}</div>
+          <div class="verlauf-tag">geliefert</div>
+        </div>
+        <button class="verlauf-del" onclick="deletePeilung('${p.id}')">${SVG.trash}</button>
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="header"><button class="btn-back" onclick="openStation('${s.id}')">${SVG.back} ${esc(s.name)}</button></div>
+    <div class="detail-header">
+      <div class="detail-sub" style="color:${k.color||'#f59e0b'}">${k.label||esc(t.kraftstoff)}</div>
+      <div class="detail-name">${esc(s.name)}</div>
+      <div class="detail-meta">${fmt(t.groesse)} Tankgröße${t.bezeichnung?' · '+esc(t.bezeichnung):''}</div>
+      <div style="margin-top:6px">${peilModeBadge(t)}</div>
+      <div class="detail-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openTankModal('${t.id}')">${SVG.edit} Bearbeiten</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTank('${t.id}')">${SVG.trash} Löschen</button>
+      </div>
+    </div>
+    ${statBar}
+    ${empBox}
+    <div class="section-title">${peilungen.length} MESSUNG${peilungen.length!==1?'EN':''}</div>
+    ${verlaufItems||'<div class="empty" style="padding:30px"><div class="empty-text">Noch keine Messungen.</div></div>'}
+    <div style="padding:10px 16px">
+      <button class="btn btn-primary btn-full" onclick="openPeilungModal()">📏 Peilung erfassen</button>
+    </div>`;
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+function setTab(tab) { state.tab = tab; render(); }
+function openStation(id) { state.activeStationId = id; state.view = "station"; render(); window.scrollTo(0,0); }
+function openTank(id) { state.activeTankId = id; state.view = "tank"; render(); window.scrollTo(0,0); }
+function goBack() {
+  if (state.view === "tank") { state.view = "station"; state.activeTankId = null; render(); window.scrollTo(0,0); }
+  else if (state.view === "station") { state.view = "list"; state.activeStationId = null; render(); window.scrollTo(0,0); }
+}
+function fabClick() {
+  if (state.view === "list") openStationModal(null);
+  else if (state.view === "station") openTankModal(null);
+}
+
+// ── Station CRUD ──────────────────────────────────────────────────────────────
+
+function openStationModal(editId) {
+  state.editStationId = editId;
+  const s = editId ? getStation(editId) : null;
+  document.getElementById("modalStationTitle").textContent = s ? "⛽ Bearbeiten" : "⛽ Neue Tankstelle";
+  document.getElementById("msName").value = s?.name || "";
+  document.getElementById("msGes").value = s?.gesellschaft || "";
+  document.getElementById("msBtn").textContent = s ? "Speichern" : "Anlegen";
+  openModal("modalStation");
+  setTimeout(() => document.getElementById("msName").focus(), 80);
+}
+function saveStation() {
+  const name = document.getElementById("msName").value.trim();
+  if (!name) { alert("Name erforderlich."); return; }
+  const data = { name, gesellschaft: document.getElementById("msGes").value };
+  if (state.editStationId) {
+    state.stationen = state.stationen.map(s => s.id === state.editStationId ? { ...s, ...data } : s);
+  } else {
+    state.stationen.push({ id: uid(), tanks: [], ...data });
+  }
+  persist(); closeModal("modalStation"); render();
+}
+function deleteStation(id) {
+  if (!confirm("Tankstelle mit allen Tanks und Messungen löschen?")) return;
+  state.stationen = state.stationen.filter(s => s.id !== id);
+  persist(); state.view = "list"; state.activeStationId = null; render();
+}
+
+// ── Peil-Modus im Tank-Modal ──────────────────────────────────────────────────
+
+function setPeilModus(modus) {
+  state.peilModus = modus;
+  document.getElementById("pmLiter").className = "peil-mode-btn" + (modus==="liter"?" active-liter":"");
+  document.getElementById("pmFaktor").className = "peil-mode-btn" + (modus==="faktor"?" active-faktor":"");
+  document.getElementById("pmTabelle").className = "peil-mode-btn" + (modus==="tabelle"?" active-tabelle":"");
+  document.getElementById("faktorSection").style.display = modus==="faktor" ? "block" : "none";
+  document.getElementById("tabelleSection").style.display = modus==="tabelle" ? "block" : "none";
+  const hints = {
+    liter: "Peilwert wird direkt in Litern eingegeben.",
+    faktor: "Peilwert in cm × Faktor = Liter. Geeignet für zylindrische Tanks.",
+    tabelle: "Individuelle cm→Liter Tabelle. Ideal für unregelmäßige Tankformen."
+  };
+  document.getElementById("pmHint").textContent = hints[modus];
+}
+
+function updateFaktorHint() {
+  const f = Number(document.getElementById("mtFaktor").value);
+  document.getElementById("faktorHint").textContent = f > 0 ? `1 cm = ${f.toLocaleString("de-DE")} L` : "z.B. 500 = jeder cm entspricht 500 L";
+}
+
+function addTabelleRow(cm="", liter="") {
+  const rowId = uid();
+  state.tabelleRows.push(rowId);
+  const container = document.getElementById("tabelleRows");
+  const div = document.createElement("div");
+  div.className = "tabelle-row";
+  div.id = "tr_" + rowId;
+  div.innerHTML = `
+    <input type="number" placeholder="cm" value="${cm}" min="0" />
+    <input type="number" placeholder="Liter" value="${liter}" min="0" />
+    <button class="tabelle-del" onclick="removeTabelleRow('${rowId}')">✕</button>`;
+  container.appendChild(div);
+}
+
+function removeTabelleRow(rowId) {
+  state.tabelleRows = state.tabelleRows.filter(r => r !== rowId);
+  document.getElementById("tr_"+rowId)?.remove();
+}
+
+function readTabelle() {
+  return state.tabelleRows.map(rowId => {
+    const el = document.getElementById("tr_"+rowId);
+    if (!el) return null;
+    const inputs = el.querySelectorAll("input");
+    const cm = Number(inputs[0].value);
+    const liter = Number(inputs[1].value);
+    return (cm >= 0 && liter >= 0) ? { cm, liter } : null;
+  }).filter(Boolean);
+}
+
+// ── Tank CRUD ─────────────────────────────────────────────────────────────────
+
+function openTankModal(editId) {
+  state.editTankId = editId;
+  const s = getStation(state.activeStationId);
+  const t = editId ? getTank(s, editId) : null;
+
+  document.getElementById("modalTankTitle").textContent = t ? "🛢 Tank bearbeiten" : "🛢 Neuer Tank";
+  document.getElementById("mtKraft").value = t?.kraftstoff || "";
+  document.getElementById("mtGroesse").value = t?.groesse || "";
+  document.getElementById("mtBez").value = t?.bezeichnung || "";
+  document.getElementById("mtBtn").textContent = t ? "Speichern" : "Anlegen";
+  document.getElementById("mtFaktor").value = t?.faktor || "";
+
+  // Tabelle laden
+  document.getElementById("tabelleRows").innerHTML = "";
+  state.tabelleRows = [];
+  if (t?.tabelle?.length) {
+    t.tabelle.forEach(r => addTabelleRow(r.cm, r.liter));
+  }
+
+  setPeilModus(t?.peilModus || "liter");
+  openModal("modalTank");
+}
+
+function saveTank() {
+  const kraft = document.getElementById("mtKraft").value;
+  if (!kraft) { alert("Bitte Kraftstofftyp wählen."); return; }
+  const groesse = Number(document.getElementById("mtGroesse").value);
+  if (!groesse || groesse <= 0) { alert("Bitte Tankgröße eingeben."); return; }
+
+  const data = {
+    kraftstoff: kraft, groesse,
+    bezeichnung: document.getElementById("mtBez").value.trim(),
+    peilModus: state.peilModus,
+  };
+
+  if (state.peilModus === "faktor") {
+    const f = Number(document.getElementById("mtFaktor").value);
+    if (!f || f <= 0) { alert("Bitte Liter/cm-Faktor eingeben."); return; }
+    data.faktor = f;
+  }
+  if (state.peilModus === "tabelle") {
+    const tab = readTabelle();
+    if (tab.length < 2) { alert("Bitte mindestens 2 Tabellen-Einträge eingeben."); return; }
+    data.tabelle = tab.sort((a,b) => a.cm-b.cm);
+  }
+
+  state.stationen = state.stationen.map(s => {
+    if (s.id !== state.activeStationId) return s;
+    if (state.editTankId) {
+      return { ...s, tanks: s.tanks.map(t => t.id === state.editTankId ? { ...t, ...data } : t) };
+    } else {
+      return { ...s, tanks: [...(s.tanks||[]), { id: uid(), peilungen: [], ...data }] };
+    }
+  });
+  persist(); closeModal("modalTank"); render();
+}
+
+function deleteTank(id) {
+  if (!confirm("Tank mit allen Messungen löschen?")) return;
+  state.stationen = state.stationen.map(s =>
+    s.id === state.activeStationId ? { ...s, tanks: s.tanks.filter(t => t.id !== id) } : s
+  );
+  persist(); openStation(state.activeStationId);
+}
+
+// ── Peilung ───────────────────────────────────────────────────────────────────
+
+function openPeilungModal() {
+  const s = getStation(state.activeStationId);
+  const t = getTank(s, state.activeTankId);
+  const istCm = t?.peilModus && t.peilModus !== "liter";
+  const einh = istCm ? "cm" : "L";
+
+  document.getElementById("pDatum").value = todayISO();
+  document.getElementById("pVor").value = "";
+  document.getElementById("pNach").value = "";
+  document.getElementById("pTage").value = "";
+  document.getElementById("pPreview").style.display = "none";
+  document.getElementById("cmUmrechnung").style.display = "none";
+
+  // Labels anpassen
+  document.getElementById("pVorLabel").textContent = `Vorpeilung (${einh}) *`;
+  document.getElementById("pNachLabel").textContent = `Nachpeilung (${einh}) *`;
+
+  // Hinweis bei cm-Modus
+  const hinweis = document.getElementById("peilEingabeHinweis");
+  if (istCm) {
+    hinweis.style.display = "block";
+    if (t.peilModus === "faktor") hinweis.textContent = `📏 Peilstab-Modus: Wert in cm eingeben. 1 cm = ${t.faktor?.toLocaleString("de-DE")} L`;
+    else hinweis.textContent = `📋 Peilstab-Modus: Wert in cm eingeben. Umrechnung via Tabelle (${(t.tabelle||[]).length} Stützpunkte).`;
+  } else {
+    hinweis.style.display = "none";
+  }
+
+  setToggle("tag");
+  openModal("modalPeilung");
+  setTimeout(() => document.getElementById("pVor").focus(), 80);
+}
+
+function setToggle(modus) {
+  state.toggleModus = modus;
+  document.getElementById("togTag").classList.toggle("active", modus==="tag");
+  document.getElementById("togTage").classList.toggle("active", modus==="tage");
+  document.getElementById("pTageRow").style.display = modus==="tage" ? "block" : "none";
+  calcPreview();
+}
+
+function calcPreview() {
+  const vorRaw = document.getElementById("pVor").value;
+  const nachRaw = document.getElementById("pNach").value;
+  if (vorRaw === "" && nachRaw === "") { document.getElementById("pPreview").style.display = "none"; return; }
+
+  const s = getStation(state.activeStationId);
+  const t = getTank(s, state.activeTankId);
+  const istCm = t?.peilModus && t.peilModus !== "liter";
+
+  const vorRawN = Number(vorRaw);
+  const nachRawN = Number(nachRaw);
+
+  // In Liter umrechnen
+  const vorL  = istCm ? toL(vorRawN, t) : vorRawN;
+  const nachL = istCm ? toL(nachRawN, t) : nachRawN;
+
+  // cm-Umrechnung anzeigen
+  if (istCm) {
+    document.getElementById("cmUmrechnung").style.display = "block";
+    document.getElementById("cuVorL").textContent = vorL !== null ? fmt(vorL) : "–";
+    document.getElementById("cuNachL").textContent = nachL !== null ? fmt(nachL) : "–";
+  } else {
+    document.getElementById("cmUmrechnung").style.display = "none";
+  }
+
+  if (vorL === null || nachL === null) return;
+
+  const geliefert = nachL - vorL;
+  const tage = state.toggleModus === "tage" ? Number(document.getElementById("pTage").value) : 1;
+  const maxFuell = t?.groesse ? Math.floor(t.groesse * 0.95) : 0;
+  const freiRaum = maxFuell > 0 ? maxFuell - vorL : null;
+  const avgEcht = t ? avgVerbrauch(t.peilungen||[], t) : null;
+  const tagesV = tage > 0 && geliefert > 0 ? Math.round(geliefert / tage) : null;
+
+  document.getElementById("pvGeliefert").textContent = geliefert >= 0 ? fmt(geliefert) : "⚠ Nachpeilung < Vorpeilung";
+  document.getElementById("pvTag").textContent = avgEcht !== null ? fmt(avgEcht)+" (Ø Verlauf)" : (tagesV!==null ? fmt(tagesV)+" (Schätzung)" : "–");
+  document.getElementById("pvWoche").textContent = avgEcht !== null ? fmt(avgEcht*7) : (tagesV!==null ? fmt(tagesV*7)+" (Schätzung)" : "–");
+  document.getElementById("pvTankgroesse").textContent = maxFuell ? fmt(maxFuell) : "–";
+  document.getElementById("pvFrei").textContent = freiRaum!==null && freiRaum>=0 ? fmt(freiRaum) : (freiRaum!==null ? "⚠ Über 95 % befüllt!" : "–");
+  document.getElementById("pPreview").style.display = "block";
+}
+
+function savePeilung() {
+  const datum = document.getElementById("pDatum").value;
+  const vorRaw = document.getElementById("pVor").value;
+  const nachRaw = document.getElementById("pNach").value;
+  const tage = state.toggleModus === "tage" ? Number(document.getElementById("pTage").value) : 1;
+
+  if (!datum) { alert("Datum eingeben."); return; }
+  if (vorRaw === "") { alert("Vorpeilung eingeben."); return; }
+  if (nachRaw === "") { alert("Nachpeilung eingeben."); return; }
+  if (state.toggleModus === "tage" && (!tage||tage<=0)) { alert("Tage eingeben."); return; }
+
+  const s = getStation(state.activeStationId);
+  const t = getTank(s, state.activeTankId);
+  const istCm = t?.peilModus && t.peilModus !== "liter";
+
+  const vorRawN = Number(vorRaw);
+  const nachRawN = Number(nachRaw);
+  const vorL  = istCm ? toL(vorRawN, t) : vorRawN;
+  const nachL = istCm ? toL(nachRawN, t) : nachRawN;
+
+  if (vorL === null || nachL === null) { alert("Umrechnung fehlgeschlagen – Tabelle prüfen."); return; }
+
+  const geliefert = nachL - vorL;
+  const peilung = { id: uid(), datum, vor: vorRawN, nach: nachRawN, vorL, nachL, geliefert, tage, modus: state.toggleModus };
+
+  state.stationen = state.stationen.map(s => {
+    if (s.id !== state.activeStationId) return s;
+    return { ...s, tanks: s.tanks.map(t => {
+      if (t.id !== state.activeTankId) return t;
+      return { ...t, peilungen: [...(t.peilungen||[]), peilung] };
+    })};
+  });
+  persist(); closeModal("modalPeilung"); render();
+}
+
+function deletePeilung(pid) {
+  if (!confirm("Messung löschen?")) return;
+  state.stationen = state.stationen.map(s => {
+    if (s.id !== state.activeStationId) return s;
+    return { ...s, tanks: s.tanks.map(t => {
+      if (t.id !== state.activeTankId) return t;
+      return { ...t, peilungen: (t.peilungen||[]).filter(p => p.id !== pid) };
+    })};
+  });
+  persist(); render();
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────────────
+
+function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+function overlayClose(e, id) { if (e.target.classList.contains("modal-overlay")) closeModal(id); }
+
+load();
+render();
+</script>
+</body>
+</html>
