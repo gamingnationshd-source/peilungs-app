@@ -1,0 +1,53 @@
+name: APK bauen
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code holen
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Android SDK einrichten
+        uses: android-actions/setup-android@v3
+
+      - name: Web-App vorbereiten
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Capacitor installieren
+        run: npm install
+
+      - name: Android-Projekt erzeugen
+        run: npx cap add android
+
+      - name: Synchronisieren
+        run: npx cap sync android
+
+      - name: APK bauen
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: APK bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: peilungs-app-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
